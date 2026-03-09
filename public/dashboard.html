@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#3F51B5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Dashboard — Life Outfitter</title>
+  <link rel="manifest" href="/manifest.json">
+  <link href="https://cdn.jsdelivr.net/npm/@fontsource/roboto@5/300.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@fontsource/roboto@5/400.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@fontsource/roboto@5/500.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@fontsource/roboto@5/700.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/material-icons@1.13.12/iconfont/material-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="page-app">
+
+  <!-- Top App Bar -->
+  <header class="app-bar">
+    <button class="icon-btn" id="menu-btn" aria-label="Open menu">
+      <span class="material-icons">menu</span>
+    </button>
+    <span class="app-bar-title">Life Outfitter</span>
+    <button class="icon-btn" id="profile-btn" aria-label="Profile">
+      <span class="avatar avatar-sm" id="user-avatar">?</span>
+    </button>
+  </header>
+
+  <!-- Nav Drawer Overlay -->
+  <div class="drawer-overlay hidden" id="drawer-overlay"></div>
+
+  <!-- Navigation Drawer -->
+  <nav class="nav-drawer" id="nav-drawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div class="drawer-user-info">
+        <div class="avatar avatar-lg" id="drawer-avatar">?</div>
+        <div>
+          <div class="drawer-user-name" id="drawer-user-name">Loading...</div>
+          <div class="drawer-user-email" id="drawer-user-email"></div>
+          <div class="role-chip" id="drawer-role"></div>
+        </div>
+      </div>
+    </div>
+    <ul class="drawer-list">
+      <li><a class="drawer-item active" href="/dashboard.html"><span class="material-icons">dashboard</span>Dashboard</a></li>
+      <li><a class="drawer-item" href="/assessment.html"><span class="material-icons">assignment</span>New Assessment</a></li>
+      <li id="nav-admin" class="hidden"><a class="drawer-item" href="/admin.html"><span class="material-icons">admin_panel_settings</span>Admin Panel</a></li>
+      <li class="drawer-divider"></li>
+      <li><a class="drawer-item" href="#" id="change-password-link"><span class="material-icons">lock</span>Change Password</a></li>
+      <li><a class="drawer-item" href="#" id="logout-link"><span class="material-icons">logout</span>Sign Out</a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Welcome / State Summary Card -->
+    <div class="card summary-card">
+      <div class="summary-greeting">
+        <div>
+          <h2 class="summary-name" id="summary-greeting">Good morning</h2>
+          <p class="summary-subtitle" id="summary-subtitle">How are you walking today?</p>
+        </div>
+        <div class="summary-score-ring" id="score-ring">
+          <span class="score-value" id="current-score">—</span>
+          <span class="score-label">avg</span>
+        </div>
+      </div>
+      <div class="summary-stats">
+        <div class="stat-chip">
+          <span class="material-icons stat-icon">history</span>
+          <span id="total-assessments">0</span> assessments
+        </div>
+        <div class="stat-chip" id="last-date-chip">
+          <span class="material-icons stat-icon">schedule</span>
+          <span id="last-assessment-date">No assessments yet</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Radar Chart Card -->
+    <div class="card chart-card" id="radar-card">
+      <h3 class="card-section-title">Current Spiritual State</h3>
+      <p class="card-section-sub" id="radar-date"></p>
+      <div class="chart-container">
+        <canvas id="radar-chart"></canvas>
+      </div>
+      <div class="no-data-msg hidden" id="radar-no-data">
+        <span class="material-icons no-data-icon">bar_chart</span>
+        <p>Take your first assessment to see your spiritual state chart</p>
+      </div>
+    </div>
+
+    <!-- Gift Scores List -->
+    <div class="card" id="scores-card">
+      <h3 class="card-section-title">Gift Breakdown</h3>
+      <div id="gift-scores-list" class="gift-scores-list">
+        <p class="text-muted text-center">No assessment data yet</p>
+      </div>
+    </div>
+
+    <!-- Trend Chart Card -->
+    <div class="card chart-card" id="trend-card">
+      <h3 class="card-section-title">Progress Over Time</h3>
+      <div class="chart-container chart-container--sm">
+        <canvas id="trend-chart"></canvas>
+      </div>
+      <div class="no-data-msg hidden" id="trend-no-data">
+        <span class="material-icons no-data-icon">show_chart</span>
+        <p>Complete multiple assessments to track your progress</p>
+      </div>
+    </div>
+
+    <!-- Group Admin Panel (shown for group_admin / superadmin) -->
+    <div class="card hidden" id="group-panel">
+      <h3 class="card-section-title">
+        <span class="material-icons" style="vertical-align:middle;margin-right:4px;">group</span>
+        My Group
+      </h3>
+      <div id="group-members-list" class="members-list"></div>
+    </div>
+
+    <!-- Bottom spacer for FAB -->
+    <div style="height:80px;"></div>
+  </main>
+
+  <!-- FAB: Take Assessment -->
+  <a href="/assessment.html" class="fab" aria-label="Take new assessment">
+    <span class="material-icons">add</span>
+  </a>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a class="bottom-nav-item active" href="/dashboard.html">
+      <span class="material-icons">dashboard</span>
+      <span>Dashboard</span>
+    </a>
+    <a class="bottom-nav-item" href="/assessment.html">
+      <span class="material-icons">assignment</span>
+      <span>Assess</span>
+    </a>
+    <a class="bottom-nav-item hidden" href="/admin.html" id="bottom-admin">
+      <span class="material-icons">admin_panel_settings</span>
+      <span>Admin</span>
+    </a>
+  </nav>
+
+  <!-- Change Password Modal -->
+  <div class="modal-overlay hidden" id="pw-modal-overlay">
+    <div class="modal">
+      <h3 class="modal-title">Change Password</h3>
+      <div id="pw-error" class="alert alert-error hidden"></div>
+      <div id="pw-success" class="alert alert-success hidden"></div>
+      <div class="form-field">
+        <label class="form-label">Current Password</label>
+        <input type="password" id="cur-pw" class="form-input" placeholder="Current password">
+      </div>
+      <div class="form-field">
+        <label class="form-label">New Password</label>
+        <input type="password" id="new-pw" class="form-input" placeholder="Min 8 characters">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Confirm New Password</label>
+        <input type="password" id="conf-pw" class="form-input" placeholder="Repeat new password">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-text" id="pw-cancel-btn">Cancel</button>
+        <button class="btn btn-primary" id="pw-save-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

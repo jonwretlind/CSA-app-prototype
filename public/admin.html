@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#3F51B5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Admin Panel — Life Outfitter</title>
+  <link rel="manifest" href="/manifest.json">
+  <link href="https://cdn.jsdelivr.net/npm/@fontsource/roboto@5/300.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@fontsource/roboto@5/400.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@fontsource/roboto@5/500.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@fontsource/roboto@5/700.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/material-icons@1.13.12/iconfont/material-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="page-app">
+
+  <!-- Top App Bar -->
+  <header class="app-bar">
+    <a class="icon-btn" href="/dashboard.html" aria-label="Go to dashboard">
+      <span class="material-icons">arrow_back</span>
+    </a>
+    <span class="app-bar-title">Admin Panel</span>
+    <button class="icon-btn" id="logout-btn" aria-label="Sign out">
+      <span class="material-icons">logout</span>
+    </button>
+  </header>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab-item active" id="tab-groups" data-tab="groups">
+      <span class="material-icons">group_work</span>
+      Groups
+    </button>
+    <button class="tab-item" id="tab-users" data-tab="users">
+      <span class="material-icons">people</span>
+      Users
+    </button>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main-content main-content--tabs">
+
+    <!-- Groups Tab -->
+    <div id="panel-groups" class="tab-panel">
+      <div class="list-toolbar">
+        <h3 class="list-toolbar-title">Groups (<span id="groups-count">0</span>)</h3>
+        <button class="btn btn-primary btn-sm" id="add-group-btn">
+          <span class="material-icons">add</span> New Group
+        </button>
+      </div>
+
+      <div id="groups-loading" class="loading-center">
+        <div class="spinner"></div>
+      </div>
+
+      <div id="groups-list" class="admin-list hidden"></div>
+      <div id="groups-empty" class="empty-state hidden">
+        <span class="material-icons empty-icon">group_work</span>
+        <p>No groups yet. Create one to get started.</p>
+      </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="panel-users" class="tab-panel hidden">
+      <div class="list-toolbar">
+        <h3 class="list-toolbar-title">Users (<span id="users-count">0</span>)</h3>
+        <button class="btn btn-primary btn-sm" id="add-user-btn">
+          <span class="material-icons">add</span> New User
+        </button>
+      </div>
+
+      <div class="filter-bar">
+        <input type="search" class="form-input filter-search" id="user-search" placeholder="Search users…">
+        <select class="form-input filter-select" id="role-filter">
+          <option value="">All Roles</option>
+          <option value="superadmin">Super Admin</option>
+          <option value="group_admin">Group Admin</option>
+          <option value="user">User</option>
+        </select>
+      </div>
+
+      <div id="users-loading" class="loading-center hidden">
+        <div class="spinner"></div>
+      </div>
+
+      <div id="users-list" class="admin-list"></div>
+      <div id="users-empty" class="empty-state hidden">
+        <span class="material-icons empty-icon">people</span>
+        <p>No users found.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a class="bottom-nav-item" href="/dashboard.html">
+      <span class="material-icons">dashboard</span>
+      <span>Dashboard</span>
+    </a>
+    <a class="bottom-nav-item" href="/assessment.html">
+      <span class="material-icons">assignment</span>
+      <span>Assess</span>
+    </a>
+    <a class="bottom-nav-item active" href="/admin.html">
+      <span class="material-icons">admin_panel_settings</span>
+      <span>Admin</span>
+    </a>
+  </nav>
+
+  <!-- ===== Group Modal ===== -->
+  <div class="modal-overlay hidden" id="group-modal-overlay">
+    <div class="modal">
+      <h3 class="modal-title" id="group-modal-title">New Group</h3>
+      <div class="modal-body">
+        <div id="group-form-error" class="alert alert-error hidden"></div>
+        <div class="form-field">
+          <label class="form-label">Group Name *</label>
+          <input type="text" id="group-name" class="form-input" placeholder="e.g. Men's Bible Study" maxlength="255">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Description</label>
+          <textarea id="group-desc" class="form-input form-textarea" placeholder="Optional description" rows="2" maxlength="500"></textarea>
+        </div>
+        <input type="hidden" id="group-edit-id">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-text" id="group-cancel-btn">Cancel</button>
+        <button class="btn btn-danger btn-sm hidden" id="group-delete-btn">Delete</button>
+        <button class="btn btn-primary" id="group-save-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== User Modal ===== -->
+  <div class="modal-overlay hidden" id="user-modal-overlay">
+    <div class="modal">
+      <h3 class="modal-title" id="user-modal-title">New User</h3>
+      <div class="modal-body">
+        <div id="user-form-error" class="alert alert-error hidden"></div>
+        <div class="form-field">
+          <label class="form-label">First Name *</label>
+          <input type="text" id="user-first" class="form-input" placeholder="First name" maxlength="100">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Last Name *</label>
+          <input type="text" id="user-last" class="form-input" placeholder="Last name" maxlength="100">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Email *</label>
+          <input type="email" id="user-email" class="form-input" placeholder="email@example.com">
+        </div>
+        <div class="form-field" id="user-password-field">
+          <label class="form-label">Password *</label>
+          <input type="password" id="user-password" class="form-input" placeholder="Min 8 characters">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Role *</label>
+          <select id="user-role" class="form-input">
+            <option value="user">User</option>
+            <option value="group_admin">Group Admin</option>
+            <option value="superadmin">Super Admin</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Group</label>
+          <select id="user-group" class="form-input">
+            <option value="">— No Group —</option>
+          </select>
+        </div>
+        <div class="form-field" id="user-active-field">
+          <label class="form-label checkbox-label">
+            <input type="checkbox" id="user-active" checked>
+            Account Active
+          </label>
+        </div>
+        <input type="hidden" id="user-edit-id">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-text" id="user-cancel-btn">Cancel</button>
+        <button class="btn btn-danger btn-sm hidden" id="user-deactivate-btn">Deactivate</button>
+        <button class="btn btn-primary" id="user-save-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+-- CSA App Seed Data — Gift Categories
+-- Inserted via npm run db:setup (uses INSERT IGNORE to be re-runnable)
+
+INSERT IGNORE INTO gift_categories
+  (id, sort_order, name, short_name, core_struggle, natural_state_label, spiritual_state_label, natural_description, spiritual_description)
+VALUES
+  (1, 1, 'Bold Proclaimer',       'Proclaimer',  'My speech is "Ready-Fire-Aim"',              'Loud and Uncontrolled',                 'Spirit-Led Boldness',                    'Speaking impulsively without thinking, overwhelming others with words',               'Speaking truth with courage and Spirit-led wisdom at the right time'),
+  (2, 2, 'Relentless Server',     'Server',      'How I Serve',                                'Serve when I want, get tired',          'Spirit-Led Serving with Energy',         'Serving from obligation or personal preference, burning out quickly',                 'Serving joyfully with supernatural endurance and joy from the Holy Spirit'),
+  (3, 3, 'Researching Teacher',   'Teacher',     'I struggle with indecisiveness',             'Getting stuck in Research',             'Taking a Step of Faith',                 'Endlessly gathering information, paralyzed by analysis, unable to act',              'Moving forward in trust, walking by faith with the knowledge you have'),
+  (4, 4, 'Enthusiastic Encourager','Encourager', 'I struggle with being a people-pleaser',     'Concerned with how others see me',      'Please God, not man',                    'Seeking human approval, adjusting behavior and words to gain acceptance',            'Finding security in God''s view alone, encouraging others toward Him'),
+  (5, 5, 'Generous Contributor',  'Contributor', 'I want recognition for my giving',           'Giving how I want, needing affirmation', 'Spirit-Led Giving',                     'Giving with strings attached, needing acknowledgment or thanks',                     'Giving freely and secretly, trusting God sees every gift'),
+  (6, 6, 'Diligent Leader',       'Leader',      'I struggle with procrastination',            'Procrastination reaching my own goals', 'Spirit-Led Diligence toward God''s goals','Delaying important work, focused on personal comfort or timing',                     'Taking Spirit-prompted decisive action toward God''s vision and calling'),
+  (7, 7, 'Cheerful Mercy',        'Mercy',       'I struggle with being cheerful all the time','Hurts and sad feelings',                'Spirit-Led forgiveness and cheerfulness', 'Carrying emotional wounds, bitterness, or sadness that dims the joy of others',     'Extending supernatural forgiveness and Spirit-filled joy to those who are hurting');
