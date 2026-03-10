@@ -121,6 +121,17 @@
       <div id="group-members-list" class="members-list"></div>
     </div>
 
+    <!-- Assessment History Card -->
+    <div class="card" id="history-card">
+      <h3 class="card-section-title">
+        <span class="material-icons" style="vertical-align:middle;margin-right:4px;">history</span>
+        Assessment History
+      </h3>
+      <div id="assessment-history-list">
+        <p class="text-muted text-center">Loading…</p>
+      </div>
+    </div>
+
     <!-- Bottom spacer for FAB -->
     <div style="height:80px;"></div>
   </main>
@@ -167,6 +178,21 @@
       <div class="modal-actions">
         <button class="btn btn-text" id="pw-cancel-btn">Cancel</button>
         <button class="btn btn-primary" id="pw-save-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assessment Detail Modal -->
+  <div class="modal-overlay hidden" id="detail-modal-overlay">
+    <div class="modal modal--wide">
+      <h3 class="modal-title" id="detail-modal-title">Assessment Detail</h3>
+      <div class="modal-body" id="detail-modal-body">
+        <div class="loading-center"><div class="spinner"></div></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-text" id="detail-close-btn">Close</button>
+        <span class="detail-save-status hidden" id="detail-save-status"></span>
+        <button class="btn btn-primary" id="detail-save-btn">Save Notes</button>
       </div>
     </div>
   </div>

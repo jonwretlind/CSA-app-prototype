@@ -6,6 +6,8 @@ requireAuth();
 const user = currentUser();
 let radarChart  = null;
 let trendChart  = null;
+let historyData = [];   // populated by loadDashboard, used for trend click-through
+let detailAssessmentId = null;
 
 // =============================================
 // Init
@@ -13,7 +15,9 @@ let trendChart  = null;
 async function init() {
   setupNav();
   populateDrawer();
+  setupDetailModal();
   await loadDashboard();
+  await loadHistory();
   if (user.role === 'group_admin' || user.role === 'superadmin') {
     await loadGroupPanel();
   }
@@ -93,6 +97,7 @@ function logout() {
 async function loadDashboard() {
   try {
     const data = await api.get('/assessments/dashboard');
+    historyData = data.history || [];
     renderSummary(data);
     renderGiftScores(data.latest_scores);
     renderRadarChart(data.latest_scores);
@@ -156,6 +161,9 @@ function renderRadarChart(scores) {
 
   const labels = scores.map(s => s.short_name);
   const values = scores.map(s => s.score);
+  const avg = values.reduce((a, b) => a + b, 0) / values.length;
+  const avgColor = scoreColor(avg);
+  const fillColor = hexToRgba(avgColor, 0.2);
 
   if (radarChart) radarChart.destroy();
 
@@ -166,8 +174,8 @@ function renderRadarChart(scores) {
       datasets: [{
         label: 'Spiritual State',
         data: values,
-        backgroundColor: 'rgba(67,160,71,0.2)',
-        borderColor: '#43A047',
+        backgroundColor: fillColor,
+        borderColor: avgColor,
         borderWidth: 2,
         pointBackgroundColor: values.map(v => scoreColor(v)),
         pointBorderColor: '#fff',
@@ -250,7 +258,16 @@ function renderTrendChart(history) {
           callbacks: {
             label: (ctx) => ` Avg: ${ctx.raw} — ${scoreZone(ctx.raw)}`
           }
+        }      },
+      onClick: (event, elements) => {
+        if (elements.length > 0) {
+          const idx = elements[0].index;
+          const item = historyData[idx];
+          if (item) openAssessmentDetail(item.id);
         }
+      },
+      onHover: (event, elements) => {
+        event.native.target.style.cursor = elements.length ? 'pointer' : 'default';
       }
     }
   });
@@ -350,6 +367,161 @@ async function doChangePassword() {
   } finally {
     btn.disabled = false;
   }
+}
+
+// =============================================
+// Assessment History List
+// =============================================
+async function loadHistory() {
+  const listEl = document.getElementById('assessment-history-list');
+  try {
+    const assessments = await api.get('/assessments?limit=20');
+    if (!assessments || !assessments.length) {
+      listEl.innerHTML = '<p class="text-muted text-center">No assessments yet.</p>';
+      return;
+    }
+    listEl.innerHTML = assessments.map(a => {
+      const avg = a.avg_score ? parseFloat(a.avg_score) : null;
+      const color = avg ? scoreColor(Math.round(avg)) : '#9E9E9E';
+      const zone  = avg ? scoreZone(avg) : '—';
+      const hasNotes = a.notes ? ' <span class="history-note-dot" title="Has notes">&#9679;</span>' : '';
+      return `
+        <div class="history-row" data-assessment-id="${a.id}">
+          <div class="history-date-col">
+            <div class="history-date">${formatDate(a.created_at)}</div>
+            <div class="history-zone" style="color:${color}">${zone}${hasNotes}</div>
+          </div>
+          <div class="history-bar-col">
+            <div class="gift-score-bar-track">
+              <div class="gift-score-bar-fill" style="width:${avg ? avg * 10 : 0}%;background:${color}"></div>
+            </div>
+          </div>
+          <div class="history-avg" style="color:${color}">${avg ? avg.toFixed(1) : '—'}</div>
+          <span class="material-icons history-chevron">chevron_right</span>
+        </div>
+      `;
+    }).join('');
+
+    // Event delegation — one listener on the container, no inline handlers
+    listEl.addEventListener('click', (e) => {
+      const row = e.target.closest('.history-row[data-assessment-id]');
+      if (row) openAssessmentDetail(parseInt(row.dataset.assessmentId));
+    });
+  } catch (err) {
+    listEl.innerHTML = '<p class="text-muted text-center">Could not load history.</p>';
+  }
+}
+
+// =============================================
+// Assessment Detail Modal
+// =============================================
+function setupDetailModal() {
+  document.getElementById('detail-close-btn').addEventListener('click', closeDetailModal);
+  document.getElementById('detail-save-btn').addEventListener('click', saveDetailNotes);
+  document.getElementById('detail-modal-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('detail-modal-overlay')) closeDetailModal();
+  });
+}
+
+function closeDetailModal() {
+  document.getElementById('detail-modal-overlay').classList.add('hidden');
+  detailAssessmentId = null;
+}
+
+async function openAssessmentDetail(id) {
+  detailAssessmentId = id;
+  const bodyEl = document.getElementById('detail-modal-body');
+  bodyEl.innerHTML = '<div class="loading-center" style="padding:24px"><div class="spinner"></div></div>';
+  document.getElementById('detail-save-status').classList.add('hidden');
+  document.getElementById('detail-modal-overlay').classList.remove('hidden');
+
+  try {
+    const data = await api.get(`/assessments/${id}`);
+    const avg = data.responses && data.responses.length
+      ? data.responses.reduce((s, r) => s + r.score, 0) / data.responses.length
+      : null;
+    const color = avg ? scoreColor(Math.round(avg)) : '#9E9E9E';
+
+    document.getElementById('detail-modal-title').textContent = formatDate(data.created_at);
+
+    bodyEl.innerHTML = `
+      <div class="detail-header-row">
+        <div class="detail-avg-wrap">
+          <div class="detail-avg-badge" style="background:${color}">${avg ? avg.toFixed(1) : '—'}</div>
+          <div class="detail-avg-zone" style="color:${color}">${avg ? scoreZone(avg) : ''}</div>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">
+          <span class="material-icons" style="font-size:15px;vertical-align:middle;margin-right:3px;">notes</span>
+          Overall Notes
+        </label>
+        <textarea id="detail-overall-notes" class="form-input form-textarea" rows="2"
+                  maxlength="1000" placeholder="Overall thoughts for this assessment…">${escHtml(data.notes || '')}</textarea>
+      </div>
+
+      <div class="detail-section-label">Gift Journal</div>
+
+      ${(data.responses || []).map(r => `
+        <div class="detail-response-row">
+          <div class="detail-response-header">
+            <span class="detail-response-name">${escHtml(r.name)}</span>
+            <div class="detail-score-badge" style="background:${scoreColor(r.score)}">${r.score}</div>
+          </div>
+          <div class="gift-score-bar-track" style="margin:4px 0 6px;">
+            <div class="gift-score-bar-fill" style="width:${r.score * 10}%;background:${scoreColor(r.score)}"></div>
+          </div>
+          <div style="font-size:.78rem;color:${scoreColor(r.score)};margin-bottom:6px;">${scoreZone(r.score)}</div>
+          <textarea class="form-input form-textarea detail-note-ta"
+                    id="detail-note-${r.gift_category_id}"
+                    rows="2" maxlength="500"
+                    placeholder="Journal note for ${escHtml(r.name)}…">${escHtml(r.note || '')}</textarea>
+        </div>
+      `).join('')}
+    `;
+  } catch (err) {
+    bodyEl.innerHTML = '<p class="text-muted text-center">Could not load assessment.</p>';
+  }
+}
+
+async function saveDetailNotes() {
+  const id  = detailAssessmentId;
+  if (!id) return;
+
+  const notes = (document.getElementById('detail-overall-notes')?.value || '').trim() || null;
+  const responseNotes = Array.from(document.querySelectorAll('.detail-note-ta')).map(el => ({
+    gift_category_id: parseInt(el.id.replace('detail-note-', '')),
+    note: el.value.trim() || null
+  }));
+
+  const btn    = document.getElementById('detail-save-btn');
+  const status = document.getElementById('detail-save-status');
+  btn.disabled = true;
+
+  try {
+    await api.patch(`/assessments/${id}/notes`, { notes, response_notes: responseNotes });
+    status.textContent = '✓ Saved';
+    status.className   = 'detail-save-status detail-save-ok';
+    status.classList.remove('hidden');
+    setTimeout(() => status.classList.add('hidden'), 2500);
+    // Refresh history list so note-dot updates
+    await loadHistory();
+  } catch (err) {
+    status.textContent = 'Save failed';
+    status.className   = 'detail-save-status detail-save-err';
+    status.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // =============================================

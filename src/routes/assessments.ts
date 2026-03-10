@@ -221,7 +221,7 @@ router.get(
       }
 
       const [responseRows] = await pool.execute(
-        `SELECT ar.id, ar.gift_category_id, ar.score,
+        `SELECT ar.id, ar.gift_category_id, ar.score, ar.note,
                 gc.name, gc.short_name, gc.natural_state_label,
                 gc.spiritual_state_label, gc.core_struggle, gc.sort_order
          FROM assessment_responses ar
@@ -234,6 +234,75 @@ router.get(
       res.json({ ...assessment, responses: responseRows });
     } catch (error) {
       console.error('Get assessment error:', error);
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+);
+
+// PATCH /api/assessments/:id/notes — update overall notes + per-gift notes
+router.patch(
+  '/:id/notes',
+  [
+    param('id').isInt({ min: 1 }),
+    body('notes').optional({ nullable: true }).trim().isLength({ max: 1000 }),
+    body('response_notes').optional().isArray(),
+    body('response_notes.*.gift_category_id').isInt({ min: 1 }),
+    body('response_notes.*.note').optional({ nullable: true }).trim().isLength({ max: 500 })
+  ],
+  async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return;
+    }
+
+    const assessmentId = parseInt(req.params.id);
+    const userId = req.user!.userId;
+    const { notes, response_notes } = req.body;
+
+    try {
+      const [assessRows] = await pool.execute(
+        'SELECT id, user_id FROM assessments WHERE id = ?',
+        [assessmentId]
+      ) as any[];
+
+      if (!assessRows.length) {
+        res.status(404).json({ error: 'Assessment not found' });
+        return;
+      }
+      if (assessRows[0].user_id !== userId) {
+        res.status(403).json({ error: 'Access denied' });
+        return;
+      }
+
+      const conn = await pool.getConnection();
+      try {
+        await conn.beginTransaction();
+
+        await conn.execute(
+          'UPDATE assessments SET notes = ? WHERE id = ?',
+          [notes !== undefined ? (notes || null) : null, assessmentId]
+        );
+
+        if (Array.isArray(response_notes)) {
+          for (const rn of response_notes) {
+            await conn.execute(
+              'UPDATE assessment_responses SET note = ? WHERE assessment_id = ? AND gift_category_id = ?',
+              [rn.note || null, assessmentId, rn.gift_category_id]
+            );
+          }
+        }
+
+        await conn.commit();
+        res.json({ message: 'Notes updated successfully' });
+      } catch (error) {
+        await conn.rollback();
+        throw error;
+      } finally {
+        conn.release();
+      }
+    } catch (error) {
+      console.error('Update notes error:', error);
       res.status(500).json({ error: 'Server error' });
     }
   }

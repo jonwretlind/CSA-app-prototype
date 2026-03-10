@@ -1,4 +1,4 @@
-const CACHE_NAME = 'csa-app-v4';
+const CACHE_NAME = 'csa-app-v5';
 const SHELL_ASSETS = [
   '/',
   '/index.html',

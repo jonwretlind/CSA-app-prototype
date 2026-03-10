@@ -47,6 +47,7 @@ const api = {
   get:    (path)       => apiRequest('GET',    path),
   post:   (path, body) => apiRequest('POST',   path, body),
   put:    (path, body) => apiRequest('PUT',    path, body),
+  patch:  (path, body) => apiRequest('PATCH',  path, body),
   delete: (path)       => apiRequest('DELETE', path)
 };
 
@@ -75,6 +76,14 @@ function requireRole(...roles) {
     return false;
   }
   return true;
+}
+
+/** Convert #RRGGBB hex to rgba(r,g,b,a) string */
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
 }
 
 /** Score → hex color */

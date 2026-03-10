@@ -1145,6 +1145,107 @@ a:hover { text-decoration: underline; }
 }
 
 /* ==============================================
+   ASSESSMENT HISTORY LIST
+   ============================================== */
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding: var(--sp-sm) 0;
+  border-bottom: 1px solid var(--divider);
+  cursor: pointer;
+  transition: background .15s;
+}
+.history-row:last-child { border-bottom: none; }
+.history-row:active { background: var(--surface-variant); }
+
+.history-date-col { min-width: 90px; }
+.history-date { font-size: .85rem; font-weight: 500; color: var(--text-primary); }
+.history-zone { font-size: .75rem; color: var(--text-secondary); margin-top: 1px; }
+.history-note-dot { font-size: 8px; vertical-align: middle; margin-left: 2px; }
+
+.history-bar-col { flex: 1; }
+.history-avg {
+  font-size: 1.05rem;
+  font-weight: 700;
+  min-width: 32px;
+  text-align: right;
+}
+.history-chevron { font-size: 18px; color: var(--text-hint); }
+
+/* ==============================================
+   ASSESSMENT DETAIL MODAL
+   ============================================== */
+.modal--wide { max-width: 560px; }
+
+.detail-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: var(--sp-md);
+}
+.detail-avg-wrap { display: flex; align-items: center; gap: var(--sp-sm); }
+.detail-avg-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.detail-avg-zone { font-size: .85rem; font-weight: 500; }
+
+.detail-section-label {
+  font-size: .75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-secondary);
+  margin: var(--sp-md) 0 var(--sp-sm);
+  padding-top: var(--sp-sm);
+  border-top: 1px solid var(--divider);
+}
+
+.detail-response-row {
+  padding: var(--sp-sm) 0;
+  border-bottom: 1px solid var(--divider);
+}
+.detail-response-row:last-child { border-bottom: none; }
+
+.detail-response-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.detail-response-name { font-weight: 500; font-size: .9rem; }
+.detail-score-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: .85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.detail-note-ta { font-size: .85rem; resize: vertical; min-height: 52px; }
+
+.detail-save-status {
+  font-size: .85rem;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+.detail-save-ok  { color: #2E7D32; background: #E8F5E9; }
+.detail-save-err { color: #C62828; background: #FFEBEE; }
+
+/* ==============================================
    RESPONSIVE — Tablet+
    ============================================== */
 @media (min-width: 600px) {
